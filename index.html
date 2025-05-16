@@ -1,73 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Premier League Matches</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f9f9f9;
-    }
-    h2 {
-      text-align: center;
-      color: #333;
-    }
-    .match {
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-    .match strong {
-      color: #0077cc;
-    }
-    .date {
-      font-size: 0.9em;
-      color: #666;
-    }
-  </style>
 </head>
 <body>
+  <h1>Premier League Matches</h1>
+  <ul id="matches"></ul>
 
-<h2>Premier League Matches</h2>
-<div id="matches">Loading...</div>
+  <script>
+    const apiKey = '3c5751669c8747c69edc51d48fa3ac8e';
+    const proxyUrl = 'https://corsproxy.io/?';
+    const apiUrl = 'https://api.football-data.org/v4/competitions/PL/matches';
 
-<script>
-  async function getMatches() {
-    const response = await fetch("https://api.football-data.org/v4/competitions/PL/matches", {
+    fetch(proxyUrl + encodeURIComponent(apiUrl), {
       headers: {
-        "X-Auth-Token": "3c5751669c8747c69edc51d48fa3ac8e"
+        'X-Auth-Token': apiKey
       }
+    })
+    .then(response => response.json())
+    .then(data => {
+      const matchesList = document.getElementById('matches');
+      const matches = data.matches.slice(0, 10); // أول 10 مباريات فقط
+      matches.forEach(match => {
+        const li = document.createElement('li');
+        li.textContent = `${match.homeTeam.name} vs ${match.awayTeam.name} - ${match.utcDate}`;
+        matchesList.appendChild(li);
+      });
+    })
+    .catch(error => {
+      document.getElementById('matches').textContent = 'Error loading matches.';
+      console.error(error);
     });
-    const data = await response.json();
-    const container = document.getElementById("matches");
-    container.innerHTML = "";
-
-    data.matches.forEach(match => {
-      const home = match.homeTeam.name;
-      const away = match.awayTeam.name;
-      const date = new Date(match.utcDate).toLocaleString();
-      const score = match.score.fullTime.home !== null
-        ? `${match.score.fullTime.home} - ${match.score.fullTime.away}`
-        : "vs";
-
-      container.innerHTML += `
-        <div class="match">
-          <strong>${home}</strong> ${score} <strong>${away}</strong><br>
-          <div class="date">${date}</div>
-        </div>
-      `;
-    });
-  }
-
-  getMatches().catch(err => {
-    document.getElementById("matches").innerText = "Error loading matches.";
-    console.error(err);
-  });
-</script>
-
+  </script>
 </body>
 </html>
